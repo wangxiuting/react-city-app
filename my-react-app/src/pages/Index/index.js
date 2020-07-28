@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Carousel, Flex} from 'antd-mobile'
+import { Carousel, Flex, Grid, WingBlank} from 'antd-mobile'
 
 // 导入 axios
 import axios from 'axios'
@@ -18,9 +18,12 @@ export default class Index extends React.Component {
     swipers: [],
     // 设置图片高度
     imgHeight: 212,
-
     // 表示轮播图是否加载中
-    isSwiperLoading: true
+    isSwiperLoading: true,
+    // 租房小组数据
+    groups:[],
+    // 最新资讯数据
+    news:[]
   }
 
   // 获取轮播图数据
@@ -36,8 +39,26 @@ export default class Index extends React.Component {
     })
   }
 
+  // 获取租房小组数据
+  async getGroups (){
+    const res = await axios.get('http://localhost:8080/home/groups?area=AREA%7C88cff55c-aaa4-e2e0')
+    this.setState({
+      groups:res.data.body
+    })
+  }
+
+  // 获取最新消息数据
+  async getNews(){
+    const res = await axios.get('http://localhost:8080/home/news?area=AREA%7C88cff55c-aaa4-e2e0')
+    this.setState({
+      news:res.data.body
+    })
+  }
+
   componentDidMount() {
     this.getSwipers()
+    this.getGroups()
+    this.getNews()
   }
 
   // 渲染轮播图数据
@@ -72,6 +93,23 @@ export default class Index extends React.Component {
     ))
   }
 
+  getNew(){
+    return this.state.news.map(item => (
+      <div className='news-item'>
+        <div>
+          <img src={`http://localhost:8080${item.imgSrc}`} alt=""/>
+        </div>
+        <Flex className="content" direction="column" justify="between">
+          <h4 className="title">{item.title}</h4>
+          <Flex className="info" justify="between">
+            <span>{item.from}</span>
+            <span>{item.date}</span>
+          </Flex>
+        </Flex>
+      </div>
+    ))
+  }
+
   render() {
     return (
       <div className="index">
@@ -84,23 +122,59 @@ export default class Index extends React.Component {
             </Carousel>
           )}
         </div>
-
+          {/*导航*/}
           <Flex className="nav">
             <Flex.Item>
-              <img src={nav1} />
+              <img src={nav1} alt=''/>
               <p>整租</p>
             </Flex.Item>
             <Flex.Item>
-              <img src={nav2} />
+              <img src={nav2} alt=''/>
               <p>合租</p>
             </Flex.Item> <Flex.Item>
-              <img src={nav3} />
+              <img src={nav3} alt=''/>
               <p>地图找房</p>
             </Flex.Item> <Flex.Item>
-              <img src={nav4} />
+              <img src={nav4} alt=''/>
               <p>去出租</p>
             </Flex.Item>
           </Flex>
+
+          {/*租房小组*/}
+          <div className='group'>
+            {/*标题*/}
+            <Flex justify='between' className='group-title'>
+              <h4>租房小组</h4>
+              <span>更多</span>
+            </Flex>
+            <Grid data={this.state.groups}
+              className='grid'
+              columnNum={2}
+              hasLine={false}
+              square={false}
+              activeStyle
+              renderItem={item => (
+              <Flex className="grid-item" justify='between'>
+                <div>
+                  <p>{item.title}</p>
+                  <span>{item.desc}</span>
+                </div>
+                <div>
+                  <img src={`http://localhost:8080${item.imgSrc}`} alt="" />
+                </div>
+              </Flex>
+                
+              )}
+            />
+          </div>
+          
+          {/*最新资讯*/}
+          <div className="newestNew">
+          <Flex justify='between' className='newestNew-title'>
+              <h4>最新资讯</h4>
+          </Flex>
+              <WingBlank size="md">{this.getNew()}</WingBlank>
+          </div>
       </div>
     )
   }
